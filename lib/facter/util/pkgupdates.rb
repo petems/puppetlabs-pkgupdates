@@ -14,11 +14,12 @@ module Facter::Util::Pkgupdates
       end
     when 'RedHat'
       command = 'yum --quiet check-upgrade'
-      Facter::Util::Resolution.exec(command).split("\n").each do |pkg|
-        list = pkg.split("\t")
-        updates[list[1]] = {}
-        updates[list[1]]['current'] = Facter::Util::Resolution.exec("rpm --query --qf '%{VERSION}-%{RELEASE}' #{list[1]}")
-        updates[list[1]]['update'] = list[2]
+      lines = Facter::Util::Resolution.exec(command).split("\n").drop(1)
+      lines.each do |pkg|
+        list = pkg.split(/ +/)
+        updates[list[0]] = {}
+        updates[list[0]]['current'] = Facter::Util::Resolution.exec("rpm --query --qf '%{VERSION}-%{RELEASE}' #{list[0]}")
+        updates[list[0]]['update'] = list[1].split(':')[-1]
       end
     end
     return updates

@@ -6,7 +6,7 @@ require 'facter/util/pkgupdates'
 updates = Facter::Util::Pkgupdates.get_packages()
 
 Facter.add(:pkg_updates) do
-  confine :operatingsystem => %w{Debian RedHat}
+  confine :osfamily => %w{Debian RedHat}
   setcode do
     updates
   end
