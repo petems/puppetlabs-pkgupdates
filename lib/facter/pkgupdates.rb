@@ -3,16 +3,11 @@
 
 require 'facter/util/pkgupdates'
 
-data = {}
+updates = Facter::Util::Pkgupdates.get_packages()
 
-data['updates'], data['security'] = Facter::Util::Pkgupdates.get_packages()
-
-data.each do |type, pkgs|
-  Facter.add(:"pkg_#{type}") do
-    confine :operatingsystem => %w{Debian}
-    setcode do
-      pkgs
-    end
+Facter.add(:pkg_updates) do
+  confine :operatingsystem => %w{Debian RedHat}
+  setcode do
+    updates
   end
 end
-
