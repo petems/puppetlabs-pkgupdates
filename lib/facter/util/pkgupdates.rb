@@ -6,11 +6,18 @@ module Facter::Util::Pkgupdates
     case Facter.value(:osfamily)
     when 'Debian'
       command = 'apt-get -s dist-upgrade | grep Inst'
-      Facter::Util::Resolution.exec(command).split("\n").each do |pkg|
-        list = pkg.split(" ")
-        updates[list[1]] = {}
-        updates[list[1]]['current'] = list[2].scan(/\[(.*)\]/)[0][0]
-        updates[list[1]]['update'] = list[3].scan(/\((.*)/)[0][0]
+      lines = Facter::Util::Resolution.exec(command)
+      if ! lines.nil?
+        lines.split("\n").each do |pkg|
+          name = pkg.scan(/^Inst (.*?) /)[0][0]
+          updates[name] = {}
+          begin
+            updates[name]['current'] = pkg.scan(/#{name} \[(.*?)\]/)[0][0]
+          rescue
+            updates[name]['current'] = 'not installed'
+          end
+          updates[name]['update'] = pkg.scan(/\((.*?) /)[0][0]
+        end
       end
     when 'RedHat'
       command = 'yum --quiet check-upgrade'
@@ -31,6 +38,6 @@ module Facter::Util::Pkgupdates
         updates[list[0]]['update'] = Facter::Util::Resolution.exec("pkg info -r #{list[0]}").scan(/Version: (.*)/)[0][0]
       end
     end
-    return updates
+    return updates if updates.length != 0
   end
 end
