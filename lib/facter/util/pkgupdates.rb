@@ -30,12 +30,15 @@ module Facter::Util::Pkgupdates
       end
     when 'Solaris'
       command = 'pkg list -u -H'
-      lines = Facter::Util::Resolution.exec(command).split("\n")
-      lines.each do |pkg|
-        list = pkg.split(/ +/)
-        updates[list[0]] = {}
-        updates[list[0]]['current'] = list[1]
-        updates[list[0]]['update'] = Facter::Util::Resolution.exec("pkg info -r #{list[0]}").scan(/Version: (.*)/)[0][0]
+      lines = Facter::Util::Resolution.exec(command)
+      if lines
+        split_lines = lines.split("\n")
+        split_lines.each do |pkg|
+          list = pkg.split(/ +/)
+          updates[list[0]] = {}
+          updates[list[0]]['current'] = list[1]
+          updates[list[0]]['update'] = Facter::Util::Resolution.exec("pkg info -r #{list[0]}").scan(/Version: (.*)/)[0][0]
+        end
       end
     end
     return updates if updates.length != 0
