@@ -5,7 +5,7 @@ module Facter::Util::Pkgupdates
     updates = {}
     case Facter.value(:osfamily)
     when 'Debian'
-      command = 'apt-get -s dist-upgrade | grep Inst'
+      command = 'apt-get -s dist-upgrade | grep "Inst "'
       lines = Facter::Util::Resolution.exec(command)
       if ! lines.nil?
         lines.split("\n").each do |pkg|
