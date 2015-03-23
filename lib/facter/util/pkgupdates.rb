@@ -20,7 +20,7 @@ module Facter::Util::Pkgupdates
         end
       end
     when 'RedHat'
-      command = 'yum --quiet check-upgrade'
+      command = 'yum --quiet check-update'
       lines = Facter::Util::Resolution.exec(command).split("\n").drop(1)
       lines.each do |pkg|
         list = pkg.split(/ +/)
