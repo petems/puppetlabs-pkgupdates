@@ -21,12 +21,15 @@ module Facter::Util::Pkgupdates
       end
     when 'RedHat'
       command = 'yum --quiet check-update'
-      lines = Facter::Util::Resolution.exec(command).split("\n").drop(1)
-      lines.each do |pkg|
-        list = pkg.split(/ +/)
-        updates[list[0]] = {}
-        updates[list[0]]['current'] = Facter::Util::Resolution.exec("rpm --query --qf '%{VERSION}-%{RELEASE}' #{list[0]}")
-        updates[list[0]]['update'] = list[1].split(':')[-1]
+      lines = Facter::Util::Resolution.exec(command)
+      if lines
+        split_lines = lines.split("\n").drop(1)
+        split_lines.each do |pkg|
+          list = pkg.split(/ +/)
+          updates[list[0]] = {}
+          updates[list[0]]['current'] = Facter::Util::Resolution.exec("rpm --query --qf '%{VERSION}-%{RELEASE}' #{list[0]}")
+          updates[list[0]]['update'] = list[1].split(':')[-1]
+        end
       end
     when 'Solaris'
       if system('pkg list -u -H > /dev/null 2>&1')
