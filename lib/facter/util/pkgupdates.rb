@@ -21,12 +21,30 @@ module Facter::Util::Pkgupdates
       end
     when 'RedHat'
       command = 'yum --quiet check-update'
-      lines = Facter::Util::Resolution.exec(command).split("\n").drop(1)
-      lines.each do |pkg|
-        list = pkg.split(/ +/)
-        updates[list[0]] = {}
-        updates[list[0]]['current'] = Facter::Util::Resolution.exec("rpm --query --qf '%{VERSION}-%{RELEASE}' #{list[0]}")
-        updates[list[0]]['update'] = list[1].split(':')[-1]
+      check_update_output = Facter::Util::Resolution.exec(command)
+      if check_update_output
+        lines = check_update_output.split("\nObsoleting Packages\n")[0].split("\n").drop(1)
+        if check_update_output.include?("\nObsoleting Packages\n")
+          obsolete_packages = check_update_output.split("\nObsoleting Packages\n")[1].split("\n").each_slice(2)
+        end
+        lines.each do |pkg|
+          list = pkg.split(/ +/)
+          updates[list[0]] = {}
+          updates[list[0]]['current'] = Facter::Util::Resolution.exec("rpm --query --qf '%{VERSION}-%{RELEASE}' #{list[0]}")
+          updates[list[0]]['update'] = list[1].split(':')[-1]
+        end
+
+        if obsolete_packages
+          obsolete_packages.each do | obs_pkg |
+            obs_list = obs_pkg[0].split(/ +/)
+            replacement_list = obs_pkg[1].split(/ +/)
+            updates[obs_list[0]] = {}
+            updates[obs_list[0]]['current'] = Facter::Util::Resolution.exec("rpm --query --qf '%{VERSION}-%{RELEASE}' #{obs_list[0]}")
+            updates[obs_list[0]]['replaced_by'] = {}
+            updates[obs_list[0]]['replaced_by']['name'] = replacement_list[1]
+            updates[obs_list[0]]['replaced_by']['version'] = replacement_list[2]
+          end
+        end
       end
     when 'Solaris'
       if system('pkg list -u -H > /dev/null 2>&1')
